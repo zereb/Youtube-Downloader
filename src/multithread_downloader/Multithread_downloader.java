@@ -5,29 +5,140 @@
  */
 package multithread_downloader;
 
+
+import com.alee.extended.filechooser.WebFileChooserField;
+import com.alee.global.StyleConstants;
 import com.alee.laf.WebLookAndFeel;
-import javax.swing.*;
+import com.alee.laf.button.WebButton;
+import com.alee.laf.label.WebLabel;
+import com.alee.laf.panel.WebPanel;
+import com.alee.laf.text.WebTextField;
+import com.alee.managers.notification.NotificationIcon;
+import com.alee.managers.notification.NotificationManager;
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.File;
+import java.io.IOException;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Observable;
+import java.util.Observer;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 
     
 
 
-public class Multithread_downloader{
-    
+public class Multithread_downloader implements Observer{
+   
+   
     public int WIDTH = 640;
     public int HEIGHT = 480,
                FIRST_P=0,
                LAST_P=1;
     
-    
+   
      JFrame frame;
+     final WebFileChooserField saveFileField;
+     WebTextField urlTextField;
+     private ArrayList<Download> downloadList = new ArrayList<Download>();
     
    public Multithread_downloader(){
+       
         frame = new JFrame("pages");
         frame.setMinimumSize(new Dimension(WIDTH, HEIGHT));
         frame.setPreferredSize(new Dimension(WIDTH, HEIGHT));
         frame.setDefaultCloseOperation(frame.EXIT_ON_CLOSE);
         frame.setLocationRelativeTo(null);
+        
+        WebPanel panel = new WebPanel();
+        panel.setUndecorated ( false );
+        panel.setLayout ( new FlowLayout() );
+        panel.setPaintSides ( false, false, true, false );
+        panel.setMargin(5);
+        
+        
+
+        urlTextField = new WebTextField(20);
+        urlTextField.setInputPrompt ( "Enter URL..." );
+        panel.add(urlTextField);
+        
+        
+        
+        saveFileField = new WebFileChooserField ( frame );
+        saveFileField.setPreferredWidth ( 300 );
+        saveFileField.setMultiSelectionEnabled ( false );
+        saveFileField.setShowFileShortName ( false );
+        saveFileField.setShowRemoveButton ( false );
+        saveFileField.setSelectedFile ( File.listRoots ()[ 0 ] );
+        panel.add(saveFileField);
+        
+        WebButton okButton = new WebButton ( " OK " );
+        okButton.addActionListener( new ActionListener() {
+                public void actionPerformed(ActionEvent e) {
+                        System.out.println("i am trying...");
+                        actionAdd();
+                }
+            });
+        panel.add(okButton);
+        
+        
+        
+        
+        
+        
+        frame.setLayout(new BorderLayout());
+        frame.setResizable(false);
+        frame.pack();
+        frame.setVisible(true);
+        frame.add(panel, BorderLayout.NORTH);
    
+   }
+   private void actionAdd() {
+    URL verifiedUrl = verifyUrl(urlTextField.getText());
+    if (verifiedUrl != null) {
+        addDownload(new Download(verifiedUrl));
+    } else {
+        NotificationManager.showNotification ( "Invalid Download URL", NotificationIcon.error.getIcon() );
+
+    }
+  }
+   
+  public void addDownload(Download download) {
+    download.addObserver(this);
+    downloadList.add(download);
+  }
+   
+
+  // Verify download URL.
+  private URL verifyUrl(String url) {
+    // Only allow HTTP URLs.
+    if (!url.toLowerCase().startsWith("http://"))
+      return null;
+
+    // Verify format of URL.
+    URL verifiedUrl = null;
+    try {
+      verifiedUrl = new URL(url);
+    } catch (Exception e) {
+      return null;
+    }
+
+    // Make sure URL specifies a file.
+    if (verifiedUrl.getFile().length() < 2)
+      return null;
+
+    return verifiedUrl;
+  }
+   
+   
+   
+   public void createDownload(){
+       
    }
       public static void main(String[] args) {
           SwingUtilities.invokeLater(new Runnable() {
@@ -38,7 +149,13 @@ public class Multithread_downloader{
             }
         });
     }  
+
+    public void update(Observable o, Object arg) {
+    }
+
+    
 }
+
 
 
 
