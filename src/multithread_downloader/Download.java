@@ -1,6 +1,10 @@
+
+package multithread_downloader;
+
 import java.io.*;
 import java.net.*;
 import java.util.*;
+
 
 // This class downloads a file from a URL.
 class Download extends Observable implements Runnable {
@@ -20,14 +24,16 @@ class Download extends Observable implements Runnable {
 
   private URL url; // download URL
   private String filePath;
+  private String fileName;
   private int size; // size of download in bytes
   private int downloaded; // number of bytes downloaded
   private int status; // current status of download
 
   // Constructor for Download.
-  public Download(URL url, String filePath) {
+  public Download(URL url, String filePath, String fileName) {
     this.url = url;
-    this.filePath = filePath;
+    this.fileName=fileName;
+    this.filePath = filePath+"/";
     size = -1;
     downloaded = 0;
     status = DOWNLOADING;
@@ -92,6 +98,10 @@ class Download extends Observable implements Runnable {
     String fileName = url.getFile();
     return fileName.substring(fileName.lastIndexOf('/') + 1);
   }
+  
+   public String getTitle(){
+       
+   }
 
   // Download file.
   public void run() {
@@ -129,6 +139,7 @@ class Download extends Observable implements Runnable {
       }
 
       // Open file and seek to the end of it.
+        System.out.println("trying to create file: "+filePath+fileName+".mp4");
       file = new RandomAccessFile(filePath+getFileName(url), "rw");
       file.seek(downloaded);
 

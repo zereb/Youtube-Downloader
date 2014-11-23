@@ -7,17 +7,22 @@ package multithread_downloader;
 
 
 import com.alee.extended.filechooser.WebFileChooserField;
+import com.alee.extended.layout.HorizontalFlowLayout;
+import com.alee.extended.layout.VerticalFlowLayout;
+import com.alee.extended.layout.WrapFlowLayout;
 import com.alee.global.StyleConstants;
 import com.alee.laf.WebLookAndFeel;
 import com.alee.laf.button.WebButton;
 import com.alee.laf.label.WebLabel;
 import com.alee.laf.panel.WebPanel;
+import com.alee.laf.scroll.WebScrollPane;
 import com.alee.laf.text.WebTextField;
 import com.alee.managers.notification.NotificationIcon;
 import com.alee.managers.notification.NotificationManager;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -28,12 +33,15 @@ import java.util.Observable;
 import java.util.Observer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.JFrame;
+import javax.swing.ScrollPaneLayout;
+import javax.swing.SwingUtilities;
 
 
     
 
 
-public class Multithread_downloader implements Observer{
+public class Multithread_downloader implements Observer {
    
    
     public int WIDTH = 640;
@@ -45,6 +53,7 @@ public class Multithread_downloader implements Observer{
      JFrame frame;
      final WebFileChooserField saveFileField;
      WebTextField urlTextField;
+     WebPanel panelMissions;
      private ArrayList<Download> downloadList = new ArrayList<Download>();
     
    public Multithread_downloader(){
@@ -88,36 +97,50 @@ public class Multithread_downloader implements Observer{
         
         
         
+     
+        panelMissions = new WebPanel();
+        panelMissions.setUndecorated (true );
+        panelMissions.setLayout ( new VerticalFlowLayout());
+        final WebScrollPane webScrollPane = new WebScrollPane(panelMissions);
+        webScrollPane.setPreferredSize ( new Dimension ( 0, 0 ) );
         
         
+        for (int i = 0; i < 10; i++) {
+           panelMissions.add(new DownloadMission(new Download(verifyUrl("lol"), "wp", "go next")));
+           
+       }
+        
+
         
         frame.setLayout(new BorderLayout());
         frame.setResizable(false);
         frame.pack();
         frame.setVisible(true);
         frame.add(panel, BorderLayout.NORTH);
+        frame.add(webScrollPane, BorderLayout.CENTER);
    
    }
    private void actionAdd() {
-    URL verifiedUrl = verifyUrl(urlTextField.getText());
-    if (verifiedUrl != null) {
-        addDownload(new Download(verifiedUrl));
-    } else {
-        NotificationManager.showNotification ( "Invalid Download URL", NotificationIcon.error.getIcon() );
+       YtubeParser yp=new YtubeParser(urlTextField.getText());
+       
+        addDownload(new Download(verifyUrl(yp.urls[0]), saveFileField.getSelectedFiles().get(0).getAbsolutePath(), yp.title));
+        urlTextField.setText(null);
 
-    }
   }
    
   public void addDownload(Download download) {
     download.addObserver(this);
     downloadList.add(download);
+    panelMissions.add(new DownloadMission(download));
+    frame.pack();
+    
   }
    
 
   // Verify download URL.
   private URL verifyUrl(String url) {
     // Only allow HTTP URLs.
-    if (!url.toLowerCase().startsWith("http://"))
+    if (false)
       return null;
 
     // Verify format of URL.
@@ -129,8 +152,7 @@ public class Multithread_downloader implements Observer{
     }
 
     // Make sure URL specifies a file.
-    if (verifiedUrl.getFile().length() < 2)
-      return null;
+    
 
     return verifiedUrl;
   }
@@ -151,6 +173,7 @@ public class Multithread_downloader implements Observer{
     }  
 
     public void update(Observable o, Object arg) {
+        frame.pack();
     }
 
     
