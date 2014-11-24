@@ -115,7 +115,7 @@ public class YouTube {
 		ArrayList<String> u = new ArrayList<String>();
 		for (String url : urls) {
 			int tag = getTag(url);
-			if (tag == 18) {
+			if (tag == 36 || tag == 18 || tag == 22) {
 				u.add(url);
 			}
 		}
