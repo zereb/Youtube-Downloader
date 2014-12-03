@@ -10,47 +10,30 @@ import com.alee.extended.filechooser.WebFileChooserField;
 import com.alee.extended.layout.HorizontalFlowLayout;
 import com.alee.extended.layout.ToolbarLayout;
 import com.alee.extended.layout.VerticalFlowLayout;
-import com.alee.extended.layout.WrapFlowLayout;
-import com.alee.extended.panel.GroupPanel;
-import com.alee.extended.panel.GroupingType;
 import com.alee.extended.statusbar.WebMemoryBar;
 import com.alee.extended.statusbar.WebStatusBar;
-import com.alee.extended.statusbar.WebStatusLabel;
-import com.alee.extended.window.WebPopOver;
-import com.alee.global.StyleConstants;
 import com.alee.laf.WebLookAndFeel;
 import com.alee.laf.button.WebButton;
 import com.alee.laf.combobox.WebComboBox;
 import com.alee.laf.label.WebLabel;
-import com.alee.laf.menu.WebMenu;
-import com.alee.laf.menu.WebMenuBar;
-import com.alee.laf.menu.WebMenuItem;
-import com.alee.laf.optionpane.WebOptionPane;
 import com.alee.laf.panel.WebPanel;
 import com.alee.laf.scroll.WebScrollPane;
 import com.alee.laf.text.WebTextField;
-import com.alee.managers.notification.NotificationIcon;
-import com.alee.managers.notification.NotificationManager;
+import com.alee.managers.language.data.TooltipWay;
+import com.alee.managers.tooltip.TooltipManager;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
-import java.awt.FlowLayout;
-import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.IOException;
+import java.io.PrintStream;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Observable;
 import java.util.Observer;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.swing.Action;
-import javax.swing.BorderFactory;
 import javax.swing.JFrame;
-import javax.swing.JMenuItem;
 import javax.swing.JPanel;
-import javax.swing.ScrollPaneLayout;
 import javax.swing.SwingUtilities;
 
 
@@ -59,13 +42,13 @@ import javax.swing.SwingUtilities;
 
 public class Multithread_downloader implements Observer {
    
-   
+    public static ByteArrayOutputStream baos;
     public int WIDTH = 640;
     public int HEIGHT = 480,
                FIRST_P=0,
                LAST_P=1;
     
-   
+     WebLabel statusLabel;
      JFrame frame;
      final WebFileChooserField saveFileField;
      WebTextField urlTextField;
@@ -90,60 +73,20 @@ public class Multithread_downloader implements Observer {
         WebStatusBar statusBar = new WebStatusBar ();
 
         // Simple label
-        statusBar.add ( new WebStatusLabel ( "Hello" ) );
         
         WebLabel totalSpeedL=new WebLabel("Total speed:"+totalSpeed+"K/bs");
+      
+        statusLabel = new WebLabel("Hello");
+        TooltipManager.setTooltip ( statusLabel, baos.toString(), TooltipWay.trailing, 0 );
 
         // Simple memory bar
         WebMemoryBar memoryBar = new WebMemoryBar ();
         memoryBar.setPreferredWidth ( memoryBar.getPreferredSize ().width + 20 );
         statusBar.add(totalSpeedL, ToolbarLayout.END);
+        statusBar.add(statusLabel, ToolbarLayout.START);
         statusBar.add(memoryBar, ToolbarLayout.END);
         
-        WebMenuItem info;
-       WebMenuBar menuBar = new WebMenuBar();
-       menuBar.setUndecorated ( true );
-       menuBar.add(new WebMenu("Recent") {
-           {
-               for (int i = 0; i < 5; i++) {
-                   add(new WebMenuItem("Recent " + i));
-               }
-           }
-       });
-       menuBar.add(new WebMenu("Info") {
-           {
-               add(new WebMenuItem("Help"));
-               add(new WebMenuItem("Info"));
-               {
-                   addActionListener(new ActionListener() {
-                       public void actionPerformed(ActionEvent e) {
-                           System.out.println("111");
-                           final WebPopOver popOver = new WebPopOver(frame);
-                           popOver.setCloseOnFocusLoss(true);
-                           popOver.setMargin(2);
-                           popOver.setLayout(new VerticalFlowLayout());;
-                           final WebLabel titleLabel = new WebLabel("Pop-over dialog", WebLabel.CENTER);
-                           popOver.add(new GroupPanel(GroupingType.fillMiddle, 4,  titleLabel).setMargin(0, 0, 10, 0));
-                           popOver.add(new WebLabel("1. This is a custom detached pop-over dialog"));
-                           popOver.add(new WebLabel("2. You can move pop-over by dragging it"));
-                           popOver.add(new WebLabel("3. Pop-over will get closed if loses focus"));
-                           popOver.add(new WebLabel("4. Custom title added using standard components"));
-                           popOver.show(frame);
-
-                       }
-                   });
-               }
-           }
-       });
-       menuBar.add(new WebMenu("Exit") {
-           {
-               addActionListener(new ActionListener() {
-                   public void actionPerformed(ActionEvent e) {
-                       System.exit(0);
-                   }
-               });
-           }
-       });
+      
         
         
         
@@ -193,9 +136,7 @@ public class Multithread_downloader implements Observer {
         final WebScrollPane webScrollPane = new WebScrollPane(panelMissions, false, false);
         
         
-        for (int i = 0; i < 9; i++) {
-           panelMissions.add(new DownloadMission(new Download(verifyUrl("lol"), "weEEEEEEEEEEEEEEeeEEEeezezezezezeezezeeezezeze", "to long title too long title", i/3)));
-           
+       
        
         
 
@@ -204,7 +145,6 @@ public class Multithread_downloader implements Observer {
         frame.setResizable(false);
         frame.pack();
         frame.setVisible(true);
-        frame.add(menuBar, BorderLayout.NORTH);
         JPanel j=new JPanel();
         j.setLayout(new BorderLayout());
         
@@ -214,12 +154,14 @@ public class Multithread_downloader implements Observer {
         frame.add(statusBar, BorderLayout.SOUTH);
         
    
-   }
+   
    }
    private void actionAdd(int hd) {
        YtubeParser yp=new YtubeParser(urlTextField.getText());
        addDownload(new Download(verifyUrl(yp.urls[hd]), saveFileField.getSelectedFiles().get(0).getAbsolutePath(), yp.title, hd));
         urlTextField.setText(null);
+        
+        System.out.println("");
 
   }
    
@@ -255,9 +197,24 @@ public class Multithread_downloader implements Observer {
    
    public void createDownload(){
        
-   }
-      public static void main(String[] args) {
-          SwingUtilities.invokeLater(new Runnable() {
+    }
+
+    public static void main(String[] args) {
+   
+        baos = new ByteArrayOutputStream();
+        PrintStream ps = new PrintStream(baos);
+        // IMPORTANT: Save the old System.out!
+        PrintStream old = System.out;
+        // Tell Java to use your special stream
+        System.setOut(ps);
+        // Print some output: goes to your special stream
+        System.out.println("Foofoofoo!");
+        System.out.println("Foofoofoo   1!");
+        // Put things back
+        System.out.flush();
+        System.setOut(old);
+        // Show what happened
+        SwingUtilities.invokeLater(new Runnable() {
             public void run() {
                 WebLookAndFeel.install();
                 WebLookAndFeel.initializeManagers();
@@ -267,6 +224,8 @@ public class Multithread_downloader implements Observer {
     }
 
     public void update(Observable o, Object arg) {
+        statusLabel.setText(baos.toString());
+        
         totalSpeed=0;
         for (Download downloadList1 : downloadList) {
             if (downloadList1.getStatus() == 0) {
