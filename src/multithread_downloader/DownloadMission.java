@@ -17,12 +17,15 @@ import com.alee.managers.language.data.TooltipWay;
 import com.alee.managers.tooltip.TooltipManager;
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.Font;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JPanel;
@@ -42,37 +45,39 @@ public class DownloadMission extends WebPanel implements Runnable, Constants{
     public DownloadMission(Download download){
         this.download=download;
         setUndecorated(false);
+        setPreferredHeight(52);
         setLayout(new BorderLayout());
+        setPaintSides ( true, false, true, false);
+        setMargin(0, 4, 0, 4);
         
-        setPaintSides ( true, false, true, true );
-        setPreferredSize(new Dimension(600, 60));
-        
-        
-        progressBar1 = new WebProgressBar ( 0, 100 );
-        progressBar1.setValue ( 0 );
-        progressBar1.setIndeterminate ( false );
-        progressBar1.setStringPainted ( true );
+        progressBar1 = new WebProgressBar (0, 100);
+        progressBar1.setValue(0);
+        progressBar1.setIndeterminate(false);
+        progressBar1.setStringPainted (true);
         
         JPanel w1=new JPanel();
         JPanel w2=new JPanel();
         w2.setLayout(new GridLayout(2,1));
-        w2.setPreferredSize(new Dimension(300, 58));
+        w2.setPreferredSize(new Dimension(300, 38));
         WebPanel progresss=new WebPanel();
         WebPanel underProgresss=new WebPanel();
         underProgresss.setLayout(new GridLayout(1,3));
         JPanel w4=new JPanel();
         w4.setLayout(new GridLayout(2,1));
-        w4.setPreferredSize(new Dimension(200, 58));
-        w1.setPreferredSize(new Dimension(130, 58));
+        w4.setPreferredSize(new Dimension(200, 38));
+        w1.setPreferredSize(new Dimension(130, 38));
         
         WebLabel name=new WebLabel(download.getTitle());
+        name.setBoldFont();
+        name.setFontSize(10);
         WebLabel path=new WebLabel(download.getPath());
+        path.setFontSize(10);
         TooltipManager.setTooltip ( name, download.getTitle(), TooltipWay.trailing, 0 );
         TooltipManager.setTooltip ( path, download.getPath(), TooltipWay.trailing, 0 );
       
         status = new WebLabel(Download.STATUSES[download.getStatus()]);
-        speed = new WebLabel(download.getSpeed());
-        ammount = new WebLabel(download.getSizeTranslated()+"/"+download.getDownloadedTranslated());
+        speed = new WebLabel("");
+        ammount = new WebLabel("");
         status.setDrawShade(true);
         status.setShadeColor(new Color(Download.COLORS[download.getStatus()]));
         status.setFontSize(10);
@@ -86,14 +91,14 @@ public class DownloadMission extends WebPanel implements Runnable, Constants{
         WebButton pauseB = new WebButton ("Pause");
         WebButton resumeB = new WebButton ("Start");
         WebButton openB = new WebButton ("Open");
-        stopB.setFontSize(11);
-        pauseB.setFontSize(11);
-        resumeB.setFontSize(11);
-        openB.setFontSize(11);
-        stopB.setPreferredWidth(60);
-        pauseB.setPreferredWidth(60);
-        openB.setPreferredWidth(60);
-        resumeB.setPreferredWidth(60);
+        stopB.setFontSize(10);
+        pauseB.setFontSize(10);
+        resumeB.setFontSize(10);
+        openB.setFontSize(10);
+        stopB.setPreferredWidth(55);
+        pauseB.setPreferredWidth(55);
+        openB.setPreferredWidth(55);
+        resumeB.setPreferredWidth(55);
 
         stopB.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -110,9 +115,13 @@ public class DownloadMission extends WebPanel implements Runnable, Constants{
                 download.resume();
             }
         });
-        stopB.addActionListener(new ActionListener() {
+        openB.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                download.cancel();
+                try {
+                    Desktop.getDesktop().open(download.pubFile);
+                } catch (IOException ex) {
+                    
+                }
             }
         });
 
@@ -155,8 +164,8 @@ public class DownloadMission extends WebPanel implements Runnable, Constants{
         while (true) {            
             status.setText(Download.STATUSES[download.getStatus()]);
             status.setShadeColor(new Color(Download.COLORS[download.getStatus()]));
-            speed.setText(download.getSpeed()+"K/bs");
-            ammount.setText(download.getDownloaded()/1024+"/"+download.getSize()/1024+"Mb");
+            speed.setText(download.formatFileSize(download.getSpeed())+"/s");
+            ammount.setText(download.formatFileSize(download.getDownloaded())+" / "+download.formatFileSize(download.getSize()));
             progressBar1.setValue((int) download.getProgress());  
             try {
                 t.sleep(250);

@@ -3,6 +3,7 @@ package multithread_downloader;
 
 import java.io.*;
 import java.net.*;
+import java.text.DecimalFormat;
 import java.util.*;
 
 
@@ -34,6 +35,7 @@ class Download extends Observable implements Runnable, Constants {
   private int downloaded; // number of bytes downloaded
   private int status; // current status of download
   private int speed;
+  public File pubFile;
   
   // Constructor for Download.
   public Download(URL url, String filePath, String fileName, int quality) {
@@ -48,6 +50,38 @@ class Download extends Observable implements Runnable, Constants {
     // Begin the download.
     download();
   }
+  
+  
+  
+  public String formatFileSize(long fsize) {
+    String hrSize = null;
+
+    double b = fsize;
+    double k = fsize/1024.0;
+    double m = ((fsize/1024.0)/1024.0);
+    double g = (((fsize/1024.0)/1024.0)/1024.0);
+    double t = ((((fsize/1024.0)/1024.0)/1024.0)/1024.0);
+
+    DecimalFormat dec = new DecimalFormat("0.00");
+
+    if ( t>1 ) {
+        hrSize = dec.format(t).concat(" TB");
+    } else if ( g>1 ) {
+        hrSize = dec.format(g).concat(" GB");
+    } else if ( m>1 ) {
+        hrSize = dec.format(m).concat(" MB");
+    } else if ( k>1 ) {
+        hrSize = dec.format(k).concat(" KB");
+    } else {
+        hrSize = dec.format(b).concat(" Bytes");
+    }
+
+    return hrSize;
+}
+    public String formatFileSize(int fsize) {
+       return formatFileSize((long) fsize);
+    }
+
 
   // Get this download's URL.
   public String getUrl() {
@@ -55,9 +89,10 @@ class Download extends Observable implements Runnable, Constants {
   }
 
   // Get this download's size.
-  public float getSize() {
-    return size/1024;
+  public int getSize() {
+    return size;
   }
+  
   
 
   // Get this download's progress.
@@ -72,8 +107,11 @@ class Download extends Observable implements Runnable, Constants {
 
   // Pause this download.
   public void pause() {
-    status = PAUSED;
-    stateChanged();
+      if(status!=CANCELLED){  
+        status = PAUSED;
+        stateChanged();
+    }
+    
   }
 
   // Resume this download.
@@ -116,11 +154,10 @@ class Download extends Observable implements Runnable, Constants {
        return  filePath;
    }
    public int getSpeed(){
-       //System.out.print("speed: "+speed+"speed/8: "+speed/8+"speed/(8*1024): "+speed/(8*1024)+"speed/1024: "+speed/1024);
-       return speed/(1024);
+       return speed;
    }
-   public float getDownloaded(){
-       return  downloaded/(1024);
+   public int getDownloaded(){
+       return  downloaded;
    }
    
    private void check(){
@@ -138,7 +175,7 @@ class Download extends Observable implements Runnable, Constants {
     InputStream stream = null;
 
     try {
-        System.out.println(" Open connection to URL quakity: "+quality);
+        System.out.println(" Open connection to URL quality: "+quality);
       HttpURLConnection connection =
         (HttpURLConnection) url.openConnection();
 
@@ -173,6 +210,7 @@ class Download extends Observable implements Runnable, Constants {
        
         check();
         file = new RandomAccessFile(filePath+fileName+".mp4", "rw");
+        pubFile=new File(filePath+fileName+".mp4");
       file.seek(downloaded);
         System.out.println("Created");
 
@@ -238,19 +276,6 @@ class Download extends Observable implements Runnable, Constants {
   }
   
   
-public String getSizeTranslated(){
-    
-    String s =  String.valueOf(getSize());
-    System.out.println("s="+s);
-            s =s.substring(0, 3);
-                System.out.println("s2="+s);
-    return  s;
-}
-
-
-public String getDownloadedTranslated(){
-    return String.valueOf(getDownloaded()).substring(0, 3);
-}
 
 
   // Notify observers that this download's status has changed.

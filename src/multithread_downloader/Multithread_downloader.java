@@ -34,6 +34,7 @@ import java.util.Observable;
 import java.util.Observer;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
+import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingUtilities;
 
 
@@ -42,22 +43,16 @@ import javax.swing.SwingUtilities;
 
 public class Multithread_downloader implements Observer, Constants {
    
-     WebLabel statusLabel;
      JFrame frame;
      final WebFileChooserField saveFileField;
      WebTextField urlTextField;
      WebPanel panelMissions;
-     WebComboBox comboBox;
+     WebComboBox qualityComboBox;
      public int totalSpeed=0;
      public WebLabel totalSpeedL;
      private ArrayList<Download> downloadList = new ArrayList<Download>();
     
    public Multithread_downloader(){
-       for (Download downloadList1 : downloadList) {
-           if(downloadList1.getStatus() ==  0 ){
-              totalSpeed=totalSpeed+downloadList1.getSpeed();
-            }
-       }
         frame = new JFrame(PROGRAMM_NAME);
         frame.setMinimumSize(new Dimension(WIDTH, HEIGHT));
         frame.setPreferredSize(new Dimension(WIDTH, HEIGHT));
@@ -65,26 +60,23 @@ public class Multithread_downloader implements Observer, Constants {
         frame.setLocationRelativeTo(null);
         
         WebStatusBar statusBar = new WebStatusBar ();
-         totalSpeedL = new WebLabel("Total speed:"+totalSpeed+"K/bs");
+        totalSpeedL = new WebLabel("");
         WebMemoryBar memoryBar = new WebMemoryBar ();
         memoryBar.setPreferredWidth ( memoryBar.getPreferredSize ().width + 20 );
         statusBar.add(totalSpeedL, ToolbarLayout.END);
-        statusBar.add(statusLabel, ToolbarLayout.START);
         statusBar.add(memoryBar, ToolbarLayout.END);
         
-        WebPanel panel = new WebPanel();
-        panel.setUndecorated ( false );
-        panel.setLayout ( new HorizontalFlowLayout() );
-        panel.setPaintSides ( false, false, true, false );
-        panel.setMargin(5);
+        WebPanel upPanel = new WebPanel();
+        upPanel.setUndecorated ( false );
+        upPanel.setLayout ( new HorizontalFlowLayout() );
+        upPanel.setPaintSides ( false, false, true, false );
+        upPanel.setMargin(5);
         
         
-
+        //----------------------- up panel 
         urlTextField = new WebTextField(20);
         urlTextField.setInputPrompt ( "Enter URL..." );
-        panel.add(urlTextField);
-        
-        
+        upPanel.add(urlTextField);
         
         saveFileField = new WebFileChooserField ( frame );
         saveFileField.setPreferredWidth ( 300 );
@@ -92,44 +84,38 @@ public class Multithread_downloader implements Observer, Constants {
         saveFileField.setShowFileShortName ( false );
         saveFileField.setShowRemoveButton ( false );
         saveFileField.setSelectedFile ( File.listRoots ()[ 0 ] );
-        panel.add(saveFileField);
+        upPanel.add(saveFileField);
         
         WebButton okButton = new WebButton ( " OK " );
-        okButton.addActionListener( new ActionListener() {
+        okButton.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
                         System.out.println("i am trying...");
-                        actionAdd(comboBox.getSelectedIndex());
+                        actionAdd(qualityComboBox.getSelectedIndex());
                 }
             });
-        panel.add(okButton);
-       
+        upPanel.add(okButton);
         
-        comboBox = new WebComboBox ( QUALITY_STRINGS );
-        panel.add(comboBox);
-        
-        
-        
-        
-     
-        panelMissions = new WebPanel();
-        panelMissions.setUndecorated (true );
-        panelMissions.setLayout ( new VerticalFlowLayout());
-        
-        final WebScrollPane webScrollPane = new WebScrollPane(panelMissions, false, false);
-        
-        
-       
-       
-        
+        qualityComboBox = new WebComboBox (QUALITY_STRINGS);
+        upPanel.add(qualityComboBox);
+        //----------------------- end up panel
 
         
+        
+        //----------------------- panel Downloads
+        panelMissions = new WebPanel();
+        panelMissions.setUndecorated (true);
+        panelMissions.setLayout (new VerticalFlowLayout());
+        final WebScrollPane webScrollPane = new WebScrollPane(panelMissions, false, false);
+        webScrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
+        //----------------------- panel Downloads
+
         frame.setLayout(new BorderLayout());
         frame.setResizable(false);
         frame.pack();
         frame.setVisible(true);
         JPanel j=new JPanel();
         j.setLayout(new BorderLayout());
-        j.add(panel, BorderLayout.NORTH);
+        j.add(upPanel, BorderLayout.NORTH);
         j.add(webScrollPane, BorderLayout.CENTER);
         frame.add(j, BorderLayout.CENTER);
         frame.add(statusBar, BorderLayout.SOUTH);
@@ -179,7 +165,7 @@ public class Multithread_downloader implements Observer, Constants {
                 totalSpeed = totalSpeed + downloadList1.getSpeed();
             }
         }
-        totalSpeedL.setText("Total speed:"+totalSpeed+"K/bs");
+        totalSpeedL.setText("Total speed:"+downloadList.get(0).formatFileSize(totalSpeed)+"/bs");
         
         
         frame.pack();
