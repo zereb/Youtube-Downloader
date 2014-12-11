@@ -32,8 +32,7 @@ import javax.swing.SwingConstants;
  *
  * @author qqqq
  */
-public class DownloadMission extends WebPanel implements Runnable{
-    String[] items = { "LD", "SD", "HD" };
+public class DownloadMission extends WebPanel implements Runnable, Constants{
     
     Download download;
     WebLabel wl;
@@ -66,16 +65,6 @@ public class DownloadMission extends WebPanel implements Runnable{
         w4.setPreferredSize(new Dimension(200, 58));
         w1.setPreferredSize(new Dimension(130, 58));
         
-            
-//        w1.setUndecorated(false);
-//        w2.setUndecorated(false);
-//        progresss.setUndecorated(false);
-//        underProgresss.setUndecorated(false);
-//        w4.setUndecorated(false);
-        
-       
-        
-//        wl = new WebLabel(Download.STATUSES[download.getStatus()]);
         WebLabel name=new WebLabel(download.getTitle());
         WebLabel path=new WebLabel(download.getPath());
         TooltipManager.setTooltip ( name, download.getTitle(), TooltipWay.trailing, 0 );
@@ -83,7 +72,7 @@ public class DownloadMission extends WebPanel implements Runnable{
       
         status = new WebLabel(Download.STATUSES[download.getStatus()]);
         speed = new WebLabel(download.getSpeed());
-        ammount = new WebLabel(download.getSize()+"/"+download.getDownloaded());
+        ammount = new WebLabel(download.getSizeTranslated()+"/"+download.getDownloadedTranslated());
         status.setDrawShade(true);
         status.setShadeColor(new Color(Download.COLORS[download.getStatus()]));
         status.setFontSize(10);
@@ -133,7 +122,7 @@ public class DownloadMission extends WebPanel implements Runnable{
         
         WebOverlay quality = new WebOverlay ();
         quality.setComponent(w1);
-        WebLabel overlay = new WebLabel(items[download.quality]);
+        WebLabel overlay = new WebLabel(QUALITY_STRINGS[download.quality]);
         overlay.setDrawShade(true);
         overlay.setShadeColor(new Color(Download.COLORS[download.quality]));
         quality.addOverlay ( overlay, SwingConstants.TRAILING, SwingConstants.TOP );

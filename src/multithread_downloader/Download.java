@@ -7,16 +7,15 @@ import java.util.*;
 
 
 // This class downloads a file from a URL.
-class Download extends Observable implements Runnable {
+class Download extends Observable implements Runnable, Constants {
   // Max size of download buffer.
   private static final int MAX_BUFFER_SIZE = 1024;
 
   private int renamer=1;
   // These are the status names.
-  public static final String STATUSES[] = {"Downloading",
-    "Paused", "Complete", "Cancelled", "Error"};
   
-  public static final int COLORS[] = {0x0B9424, 0x94880B, 0x0EB7C8, 0xC8720E, 0xC8170E};
+  
+
   
   public int quality;
 
@@ -56,7 +55,7 @@ class Download extends Observable implements Runnable {
   }
 
   // Get this download's size.
-  public int getSize() {
+  public float getSize() {
     return size/1024;
   }
   
@@ -120,7 +119,7 @@ class Download extends Observable implements Runnable {
        //System.out.print("speed: "+speed+"speed/8: "+speed/8+"speed/(8*1024): "+speed/(8*1024)+"speed/1024: "+speed/1024);
        return speed/(1024);
    }
-   public int getDownloaded(){
+   public float getDownloaded(){
        return  downloaded/(1024);
    }
    
@@ -237,6 +236,22 @@ class Download extends Observable implements Runnable {
       }
     }
   }
+  
+  
+public String getSizeTranslated(){
+    
+    String s =  String.valueOf(getSize());
+    System.out.println("s="+s);
+            s =s.substring(0, 3);
+                System.out.println("s2="+s);
+    return  s;
+}
+
+
+public String getDownloadedTranslated(){
+    return String.valueOf(getDownloaded()).substring(0, 3);
+}
+
 
   // Notify observers that this download's status has changed.
   private void stateChanged() {

@@ -40,14 +40,8 @@ import javax.swing.SwingUtilities;
     
 
 
-public class Multithread_downloader implements Observer {
+public class Multithread_downloader implements Observer, Constants {
    
-    public static ByteArrayOutputStream baos;
-    public int WIDTH = 640;
-    public int HEIGHT = 480,
-               FIRST_P=0,
-               LAST_P=1;
-    
      WebLabel statusLabel;
      JFrame frame;
      final WebFileChooserField saveFileField;
@@ -55,40 +49,28 @@ public class Multithread_downloader implements Observer {
      WebPanel panelMissions;
      WebComboBox comboBox;
      public int totalSpeed=0;
+     public WebLabel totalSpeedL;
      private ArrayList<Download> downloadList = new ArrayList<Download>();
     
    public Multithread_downloader(){
-       
        for (Download downloadList1 : downloadList) {
            if(downloadList1.getStatus() ==  0 ){
               totalSpeed=totalSpeed+downloadList1.getSpeed();
             }
        }
-        frame = new JFrame("YouTube downloader");
+        frame = new JFrame(PROGRAMM_NAME);
         frame.setMinimumSize(new Dimension(WIDTH, HEIGHT));
         frame.setPreferredSize(new Dimension(WIDTH, HEIGHT));
         frame.setDefaultCloseOperation(frame.EXIT_ON_CLOSE);
         frame.setLocationRelativeTo(null);
         
         WebStatusBar statusBar = new WebStatusBar ();
-
-        // Simple label
-        
-        WebLabel totalSpeedL=new WebLabel("Total speed:"+totalSpeed+"K/bs");
-      
-        statusLabel = new WebLabel("Hello");
-        TooltipManager.setTooltip ( statusLabel, baos.toString(), TooltipWay.trailing, 0 );
-
-        // Simple memory bar
+         totalSpeedL = new WebLabel("Total speed:"+totalSpeed+"K/bs");
         WebMemoryBar memoryBar = new WebMemoryBar ();
         memoryBar.setPreferredWidth ( memoryBar.getPreferredSize ().width + 20 );
         statusBar.add(totalSpeedL, ToolbarLayout.END);
         statusBar.add(statusLabel, ToolbarLayout.START);
         statusBar.add(memoryBar, ToolbarLayout.END);
-        
-      
-        
-        
         
         WebPanel panel = new WebPanel();
         panel.setUndecorated ( false );
@@ -120,9 +102,9 @@ public class Multithread_downloader implements Observer {
                 }
             });
         panel.add(okButton);
-        String[] items = { "LD", "SD", "HD" };
+       
         
-        comboBox = new WebComboBox ( items );
+        comboBox = new WebComboBox ( QUALITY_STRINGS );
         panel.add(comboBox);
         
         
@@ -147,22 +129,16 @@ public class Multithread_downloader implements Observer {
         frame.setVisible(true);
         JPanel j=new JPanel();
         j.setLayout(new BorderLayout());
-        
         j.add(panel, BorderLayout.NORTH);
         j.add(webScrollPane, BorderLayout.CENTER);
         frame.add(j, BorderLayout.CENTER);
         frame.add(statusBar, BorderLayout.SOUTH);
-        
-   
    
    }
-   private void actionAdd(int hd) {
+   private void actionAdd(int quality) {
        YtubeParser yp=new YtubeParser(urlTextField.getText());
-       addDownload(new Download(verifyUrl(yp.urls[hd]), saveFileField.getSelectedFiles().get(0).getAbsolutePath(), yp.title, hd));
+       addDownload(new Download(verifyUrl(yp.urls[quality]), saveFileField.getSelectedFiles().get(0).getAbsolutePath(), yp.title, quality));
         urlTextField.setText(null);
-        
-        System.out.println("");
-
   }
    
   public void addDownload(Download download) {
@@ -172,48 +148,21 @@ public class Multithread_downloader implements Observer {
     frame.pack();
   }
    
+  public void createFrames(){
+      
+  }
 
-  // Verify download URL.
   private URL verifyUrl(String url) {
-    // Only allow HTTP URLs.
-    if (false)
-      return null;
-
-    // Verify format of URL.
     URL verifiedUrl = null;
     try {
       verifiedUrl = new URL(url);
     } catch (Exception e) {
       return null;
     }
-
-    // Make sure URL specifies a file.
-    
-
     return verifiedUrl;
   }
    
-   
-   
-   public void createDownload(){
-       
-    }
-
     public static void main(String[] args) {
-   
-        baos = new ByteArrayOutputStream();
-        PrintStream ps = new PrintStream(baos);
-        // IMPORTANT: Save the old System.out!
-        PrintStream old = System.out;
-        // Tell Java to use your special stream
-        System.setOut(ps);
-        // Print some output: goes to your special stream
-        System.out.println("Foofoofoo!");
-        System.out.println("Foofoofoo   1!");
-        // Put things back
-        System.out.flush();
-        System.setOut(old);
-        // Show what happened
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
                 WebLookAndFeel.install();
@@ -224,14 +173,15 @@ public class Multithread_downloader implements Observer {
     }
 
     public void update(Observable o, Object arg) {
-        statusLabel.setText(baos.toString());
-        
         totalSpeed=0;
         for (Download downloadList1 : downloadList) {
             if (downloadList1.getStatus() == 0) {
                 totalSpeed = totalSpeed + downloadList1.getSpeed();
             }
         }
+        totalSpeedL.setText("Total speed:"+totalSpeed+"K/bs");
+        
+        
         frame.pack();
     }
 
