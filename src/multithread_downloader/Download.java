@@ -164,7 +164,7 @@ class Download extends Observable implements Runnable, Constants {
         if (new File(filePath+fileName+".mp4").isFile()) {
             fileName=fileName+"("+renamer+")";
             renamer++;
-            System.out.println("Fiele already exist. New file name");
+           Log.putDebug("Fiele already exist. New file name");
             check();
         }   
    }
@@ -175,18 +175,18 @@ class Download extends Observable implements Runnable, Constants {
     InputStream stream = null;
 
     try {
-        System.out.println(" Open connection to URL quality: "+quality);
+       Log.putInfo(" Open connection to URL quality: "+quality);
       HttpURLConnection connection =
         (HttpURLConnection) url.openConnection();
 
-      System.out.println("// Specify what portion of file to download.");
+     Log.putInfo("// Specify what portion of file to download.");
       connection.setRequestProperty("Range",
         "bytes=" + downloaded + "-");
 
-      System.out.println("/ Connect to server.");
+     Log.putInfo("/ Connect to server.");
       connection.connect();
       
-      System.out.println(" Make sure response code is in the 200 range.");
+     Log.putInfo(" Make sure response code is in the 200 range.");
       if (connection.getResponseCode() / 100 != 2) {
         error();
         
@@ -206,13 +206,13 @@ class Download extends Observable implements Runnable, Constants {
       }
 
       // Open file and seek to the end of it.
-        System.out.println("trying to create file: "+filePath+fileName+".mp4");
+       Log.putInfo("trying to create file: "+filePath+fileName+".mp4");
        
         check();
         file = new RandomAccessFile(filePath+fileName+".mp4", "rw");
         pubFile=new File(filePath+fileName+".mp4");
       file.seek(downloaded);
-        System.out.println("Created");
+       Log.putInfo("Created");
 
       stream = connection.getInputStream();
       long lastTime=System.currentTimeMillis();
@@ -269,7 +269,7 @@ class Download extends Observable implements Runnable, Constants {
           stream.close();
         } catch (Exception e) {
             errorText=errorText+"\n"+e.toString();
-            System.out.println(e);
+           Log.putInfo(e.toString());
         }
       }
     }

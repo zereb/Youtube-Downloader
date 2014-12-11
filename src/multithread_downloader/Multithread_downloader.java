@@ -50,6 +50,8 @@ public class Multithread_downloader implements Observer, Constants {
      WebComboBox qualityComboBox;
      public int totalSpeed=0;
      public WebLabel totalSpeedL;
+     public WebLabel statusLabel;
+     Thread t;
      private ArrayList<Download> downloadList = new ArrayList<Download>();
     
    public Multithread_downloader(){
@@ -61,10 +63,12 @@ public class Multithread_downloader implements Observer, Constants {
         
         WebStatusBar statusBar = new WebStatusBar ();
         totalSpeedL = new WebLabel("");
+        statusLabel = new WebLabel("Hi there!");
         WebMemoryBar memoryBar = new WebMemoryBar ();
         memoryBar.setPreferredWidth ( memoryBar.getPreferredSize ().width + 20 );
         statusBar.add(totalSpeedL, ToolbarLayout.END);
         statusBar.add(memoryBar, ToolbarLayout.END);
+        statusBar.add(statusLabel, ToolbarLayout.START);
         
         WebPanel upPanel = new WebPanel();
         upPanel.setUndecorated ( false );
@@ -89,7 +93,7 @@ public class Multithread_downloader implements Observer, Constants {
         WebButton okButton = new WebButton ( " OK " );
         okButton.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
-                        System.out.println("i am trying...");
+                       Log.putInfo("i am trying...");
                         actionAdd(qualityComboBox.getSelectedIndex());
                 }
             });
@@ -119,6 +123,7 @@ public class Multithread_downloader implements Observer, Constants {
         j.add(webScrollPane, BorderLayout.CENTER);
         frame.add(j, BorderLayout.CENTER);
         frame.add(statusBar, BorderLayout.SOUTH);
+        
    
    }
    private void actionAdd(int quality) {
@@ -165,13 +170,15 @@ public class Multithread_downloader implements Observer, Constants {
                 totalSpeed = totalSpeed + downloadList1.getSpeed();
             }
         }
-        totalSpeedL.setText("Total speed:"+downloadList.get(0).formatFileSize(totalSpeed)+"/bs");
-        
+        totalSpeedL.setText("Total speed:"+downloadList.get(0).formatFileSize(totalSpeed)+"/s");
+       
         
         frame.pack();
     }
 
 }
+
+  
 
 
 

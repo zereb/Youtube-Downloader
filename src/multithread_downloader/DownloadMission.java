@@ -41,7 +41,7 @@ public class DownloadMission extends WebPanel implements Runnable, Constants{
     WebLabel wl;
     WebProgressBar progressBar1;
     Thread t;
-      WebLabel status;WebLabel speed;WebLabel ammount;
+    WebLabel status;WebLabel speed;WebLabel ammount;
     public DownloadMission(Download download){
         this.download=download;
         setUndecorated(false);
