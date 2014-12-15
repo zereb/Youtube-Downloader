@@ -52,7 +52,9 @@ public class Multithread_downloader implements Observer, Constants {
      public WebLabel totalSpeedL;
      public WebLabel statusLabel;
      Thread t;
+     public QueueManager qm;
      private ArrayList<Download> downloadList = new ArrayList<Download>();
+     int currentid=1;
     
    public Multithread_downloader(){
         frame = new JFrame(PROGRAMM_NAME);
@@ -124,18 +126,21 @@ public class Multithread_downloader implements Observer, Constants {
         frame.add(j, BorderLayout.CENTER);
         frame.add(statusBar, BorderLayout.SOUTH);
         
+        qm=new QueueManager(downloadList);
    
    }
    private void actionAdd(int quality) {
        YtubeParser yp=new YtubeParser(urlTextField.getText());
-       addDownload(new Download(verifyUrl(yp.urls[quality]), saveFileField.getSelectedFiles().get(0).getAbsolutePath(), yp.title, quality));
+       addDownload(new Download(verifyUrl(yp.urls[quality]), saveFileField.getSelectedFiles().get(0).getAbsolutePath(), yp.title, quality,currentid));
         urlTextField.setText(null);
+        currentid++;
   }
    
   public void addDownload(Download download) {
     download.addObserver(this);
     downloadList.add(download);
     panelMissions.add(new DownloadMission(download));
+    qm.updateManager(downloadList);
     frame.pack();
   }
    
@@ -165,12 +170,14 @@ public class Multithread_downloader implements Observer, Constants {
 
     public void update(Observable o, Object arg) {
         totalSpeed=0;
+        qm.updateManager(downloadList);
         for (Download downloadList1 : downloadList) {
             if (downloadList1.getStatus() == 0) {
                 totalSpeed = totalSpeed + downloadList1.getSpeed();
             }
         }
         totalSpeedL.setText("Total speed:"+downloadList.get(0).formatFileSize(totalSpeed)+"/s");
+        statusLabel.setText("Current downloads: "+qm.getCurrentDownloads());
        
         
         frame.pack();

@@ -27,7 +27,7 @@ public final class Log {
     public static void putDebug(String x){
         debug.add(x);
         indexD++;
-        System.out.println(indexD+": "+log.get(indexD));
+        System.err.println(indexD+": "+debug.get(indexD));
     }
     
     public static String getInfoLog(){

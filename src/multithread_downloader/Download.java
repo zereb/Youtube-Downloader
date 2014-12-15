@@ -13,6 +13,7 @@ class Download extends Observable implements Runnable, Constants {
   private static final int MAX_BUFFER_SIZE = 1024;
 
   private int renamer=1;
+  public int id=0;
   // These are the status names.
   
   
@@ -26,6 +27,7 @@ class Download extends Observable implements Runnable, Constants {
   public static final int COMPLETE = 2;
   public static final int CANCELLED = 3;
   public static final int ERROR = 4;
+  public static final int QUEUE = 5;
 
   public String errorText=null;
   private URL url; // download URL
@@ -38,17 +40,20 @@ class Download extends Observable implements Runnable, Constants {
   public File pubFile;
   
   // Constructor for Download.
-  public Download(URL url, String filePath, String fileName, int quality) {
+  public Download(URL url, String filePath, String fileName, int quality, int id) {
     this.quality=quality;
     this.url = url;
     this.fileName=fileName;
     this.filePath = filePath+"/";
+    this.id=id;
     size = -1;
     downloaded = 0;
-    status = DOWNLOADING;
+    status = QUEUE;
 
     // Begin the download.
-    download();
+      if (status!=QUEUE) {
+          download();
+      }
   }
   
   
@@ -119,7 +124,7 @@ class Download extends Observable implements Runnable, Constants {
     if(status!=CANCELLED){  
         status = DOWNLOADING;
         stateChanged();
-       // download();
+        download();
     }
   }
 
@@ -171,107 +176,112 @@ class Download extends Observable implements Runnable, Constants {
 
   // Download file.
   public void run() {
-    RandomAccessFile file = null;
-    InputStream stream = null;
+    if(status!=QUEUE){
+        RandomAccessFile file = null;
+        InputStream stream = null;
 
-    try {
-       Log.putInfo(" Open connection to URL quality: "+quality);
-      HttpURLConnection connection =
-        (HttpURLConnection) url.openConnection();
+        try {
+           Log.putInfo(" Open connection to URL quality: "+quality);
+          HttpURLConnection connection =
+            (HttpURLConnection) url.openConnection();
 
-     Log.putInfo("// Specify what portion of file to download.");
-      connection.setRequestProperty("Range",
-        "bytes=" + downloaded + "-");
+         Log.putInfo("// Specify what portion of file to download.");
+          connection.setRequestProperty("Range",
+            "bytes=" + downloaded + "-");
 
-     Log.putInfo("/ Connect to server.");
-      connection.connect();
-      
-     Log.putInfo(" Make sure response code is in the 200 range.");
-      if (connection.getResponseCode() / 100 != 2) {
-        error();
-        
-      }
+         Log.putInfo("/ Connect to server.");
+          connection.connect();
 
-      // Check for valid content length.
-      int contentLength = connection.getContentLength();
-      if (contentLength < 1) {
-        error();
-      }
+         Log.putInfo(" Make sure response code is in the 200 range.");
+          if (connection.getResponseCode() / 100 != 2) {
+            error();
 
-      /* Set the size for this download if it
-         hasn't been already set. */
-      if (size == -1) {
-        size = contentLength;
-        stateChanged();
-      }
-
-      // Open file and seek to the end of it.
-       Log.putInfo("trying to create file: "+filePath+fileName+".mp4");
-       
-        check();
-        file = new RandomAccessFile(filePath+fileName+".mp4", "rw");
-        pubFile=new File(filePath+fileName+".mp4");
-      file.seek(downloaded);
-       Log.putInfo("Created");
-
-      stream = connection.getInputStream();
-      long lastTime=System.currentTimeMillis();
-     int currenD=downloaded;
-      while (status == DOWNLOADING) {
-          if(System.currentTimeMillis()-lastTime>=1000){
-              lastTime=System.currentTimeMillis();
-              speed=downloaded-currenD;
-              currenD=downloaded;
           }
-          
-        /* Size buffer according to how much of the
-           file is left to download. */
-        byte buffer[];
-        if (size - downloaded > MAX_BUFFER_SIZE) {
-          buffer = new byte[MAX_BUFFER_SIZE];
-        } else {
-          buffer = new byte[size - downloaded];
-        }
 
-        // Read from server into buffer.
-        int read = stream.read(buffer);
-        if (read == -1)
-          break;
+          // Check for valid content length.
+          int contentLength = connection.getContentLength();
+          if (contentLength < 1) {
+            error();
+          }
 
-        // Write buffer to file.
-        file.write(buffer, 0, read);
-        downloaded += read;
-        stateChanged();
-      }
+          /* Set the size for this download if it
+             hasn't been already set. */
+          if (size == -1) {
+            size = contentLength;
+            stateChanged();
+          }
 
-      /* Change status to complete if this point was
-         reached because downloading has finished. */
-      if (status == DOWNLOADING) {
-        status = COMPLETE;
-        stateChanged();
-      }
-    } catch (Exception e) {
-      error();
-      errorText=errorText+"\n"+e.toString();
-    } finally {
-      // Close file.
-      if (file != null) {
-        try {
-          file.close();
+          // Open file and seek to the end of it.
+           Log.putInfo("trying to create file: "+filePath+fileName+".mp4");
+
+            check();
+            file = new RandomAccessFile(filePath+fileName+".mp4", "rw");
+            pubFile=new File(filePath+fileName+".mp4");
+          file.seek(downloaded);
+           Log.putInfo("Created");
+
+          stream = connection.getInputStream();
+          long lastTime=System.currentTimeMillis();
+         int currenD=downloaded;
+         while (status == QUEUE){
+             Log.putDebug("queue");
+         }
+          while (status == DOWNLOADING) {
+              if(System.currentTimeMillis()-lastTime>=1000){
+                  lastTime=System.currentTimeMillis();
+                  speed=downloaded-currenD;
+                  currenD=downloaded;
+              }
+
+            /* Size buffer according to how much of the
+               file is left to download. */
+            byte buffer[];
+            if (size - downloaded > MAX_BUFFER_SIZE) {
+              buffer = new byte[MAX_BUFFER_SIZE];
+            } else {
+              buffer = new byte[size - downloaded];
+            }
+
+            // Read from server into buffer.
+            int read = stream.read(buffer);
+            if (read == -1)
+              break;
+
+            // Write buffer to file.
+            file.write(buffer, 0, read);
+            downloaded += read;
+            stateChanged();
+          }
+
+          /* Change status to complete if this point was
+             reached because downloading has finished. */
+          if (status == DOWNLOADING) {
+            status = COMPLETE;
+            stateChanged();
+          }
         } catch (Exception e) {
-            errorText=errorText+"\n"+e.toString();
-        }
-      }
+          error();
+          errorText=errorText+"\n"+e.toString();
+        } finally {
+          // Close file.
+          if (file != null) {
+            try {
+              file.close();
+            } catch (Exception e) {
+                errorText=errorText+"\n"+e.toString();
+            }
+          }
 
-      // Close connection to server.
-      if (stream != null) {
-        try {
-          stream.close();
-        } catch (Exception e) {
-            errorText=errorText+"\n"+e.toString();
-           Log.putInfo(e.toString());
+          // Close connection to server.
+          if (stream != null) {
+            try {
+              stream.close();
+            } catch (Exception e) {
+                errorText=errorText+"\n"+e.toString();
+               Log.putInfo(e.toString());
+            }
+          }
         }
-      }
     }
   }
   
