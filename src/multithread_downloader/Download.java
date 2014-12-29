@@ -17,8 +17,6 @@ class Download extends Observable implements Runnable, Constants {
   // These are the status names.
   
   
-
-  
   public int quality;
 
   // These are the status codes.

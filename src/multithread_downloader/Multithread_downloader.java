@@ -130,10 +130,12 @@ public class Multithread_downloader implements Observer, Constants {
    
    }
    private void actionAdd(int quality) {
-       YtubeParser yp=new YtubeParser(urlTextField.getText());
-       addDownload(new Download(verifyUrl(yp.urls[quality]), saveFileField.getSelectedFiles().get(0).getAbsolutePath(), yp.title, quality,currentid));
-        urlTextField.setText(null);
-        currentid++;
+       YtubeParser yp = new YtubeParser(urlTextField.getText());
+       if (yp.gotem) {
+           addDownload(new Download(verifyUrl(yp.urls[quality]), saveFileField.getSelectedFiles().get(0).getAbsolutePath(), yp.title, quality, currentid));
+           urlTextField.setText(null);
+           currentid++;
+       }
   }
    
   public void addDownload(Download download) {
@@ -149,6 +151,8 @@ public class Multithread_downloader implements Observer, Constants {
   }
 
   private URL verifyUrl(String url) {
+    urlTextField.setText(url);
+      
     URL verifiedUrl = null;
     try {
       verifiedUrl = new URL(url);
@@ -179,7 +183,6 @@ public class Multithread_downloader implements Observer, Constants {
         totalSpeedL.setText("Total speed:"+downloadList.get(0).formatFileSize(totalSpeed)+"/s");
         statusLabel.setText("Current downloads: "+qm.getCurrentDownloads());
        
-        
         frame.pack();
     }
 
