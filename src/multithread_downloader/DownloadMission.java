@@ -30,6 +30,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
+import zereb.utils.download.Download;
 
 /**
  *
@@ -79,7 +80,7 @@ public class DownloadMission extends WebPanel implements Runnable, Constants{
         speed = new WebLabel("");
         ammount = new WebLabel("");
         status.setDrawShade(true);
-        status.setShadeColor(new Color(Download.COLORS[download.getStatus()]));
+        status.setShadeColor(new Color(COLORS[download.getStatus()]));
         status.setFontSize(10);
         TooltipManager.setTooltip ( status, download.errorText, TooltipWay.trailing, 0 );
         speed.setFontSize(10);
@@ -131,9 +132,9 @@ public class DownloadMission extends WebPanel implements Runnable, Constants{
         
         WebOverlay quality = new WebOverlay ();
         quality.setComponent(w1);
-        WebLabel overlay = new WebLabel(QUALITY_STRINGS[download.quality]);
+        WebLabel overlay = new WebLabel(QUALITY_STRINGS[1]);
         overlay.setDrawShade(true);
-        overlay.setShadeColor(new Color(Download.COLORS[download.quality]));
+        overlay.setShadeColor(new Color(COLORS[1]));
         quality.addOverlay ( overlay, SwingConstants.TRAILING, SwingConstants.TOP );
         quality.setComponentMargin ( 0, 5, 0, -10 );
         
@@ -161,12 +162,20 @@ public class DownloadMission extends WebPanel implements Runnable, Constants{
     }
 
     public void run() {
+        int err=1;
         while (true) {            
             status.setText(Download.STATUSES[download.getStatus()]);
-            status.setShadeColor(new Color(Download.COLORS[download.getStatus()]));
+            status.setShadeColor(new Color(COLORS[download.getStatus()]));
             speed.setText(download.formatFileSize(download.getSpeed())+"/s");
             ammount.setText(download.formatFileSize(download.getDownloaded())+" / "+download.formatFileSize(download.getSize()));
             progressBar1.setValue((int) download.getProgress());  
+            if(download.getStatus()==Download.ERROR){
+                if(err==1)
+                    TooltipManager.setTooltip ( status, download.errorText, TooltipWay.trailing, 0 );
+                err=-1;
+            }
+            
+            
             try {
                 t.sleep(250);
             } catch (InterruptedException ex) {

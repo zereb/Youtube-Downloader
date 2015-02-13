@@ -19,23 +19,22 @@ import com.alee.laf.label.WebLabel;
 import com.alee.laf.panel.WebPanel;
 import com.alee.laf.scroll.WebScrollPane;
 import com.alee.laf.text.WebTextField;
-import com.alee.managers.language.data.TooltipWay;
-import com.alee.managers.tooltip.TooltipManager;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.PrintStream;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.Observable;
 import java.util.Observer;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingUtilities;
+import zereb.utils.Log;
+import zereb.utils.download.Download;
+import zereb.utils.download.DownloadManager;
+import zereb.utils.download.DownloadManagerExeption;
 
 
     
@@ -51,10 +50,11 @@ public class Multithread_downloader implements Observer, Constants {
      public int totalSpeed=0;
      public WebLabel totalSpeedL;
      public WebLabel statusLabel;
+     Choice choice;
      Thread t;
-     public QueueManager qm;
-     private ArrayList<Download> downloadList = new ArrayList<Download>();
      int currentid=1;
+     public DownloadManager dm;
+     YtubeParser yp;
     
    public Multithread_downloader(){
         frame = new JFrame(PROGRAMM_NAME);
@@ -63,6 +63,12 @@ public class Multithread_downloader implements Observer, Constants {
         frame.setDefaultCloseOperation(frame.EXIT_ON_CLOSE);
         frame.setLocationRelativeTo(null);
         
+        
+         try {
+             dm=new DownloadManager(1);
+         } catch (DownloadManagerExeption ex) {
+             Log.putError("Неверное максимальное число загрузок");
+         }
         WebStatusBar statusBar = new WebStatusBar ();
         totalSpeedL = new WebLabel("");
         statusLabel = new WebLabel("Hi there!");
@@ -126,25 +132,36 @@ public class Multithread_downloader implements Observer, Constants {
         frame.add(j, BorderLayout.CENTER);
         frame.add(statusBar, BorderLayout.SOUTH);
         
-        qm=new QueueManager(downloadList);
    
    }
    private void actionAdd(int quality) {
-       YtubeParser yp = new YtubeParser(urlTextField.getText());
-       if (yp.gotem) {
-           addDownload(new Download(verifyUrl(yp.urls[quality]), saveFileField.getSelectedFiles().get(0).getAbsolutePath(), yp.title, quality, currentid));
-           urlTextField.setText(null);
-           currentid++;
+       try {
+           
+           yp = new YtubeParser(urlTextField.getText());
+           
+           choice = new Choice(yp);
+           choice.t.start();
+           choice.addObserver(this);
+           
+           
+       } catch (Exception e) {
+           Log.putError(e.toString());
        }
+       
+       
   }
    
-  public void addDownload(Download download) {
-    download.addObserver(this);
-    downloadList.add(download);
-    panelMissions.add(new DownloadMission(download));
-    qm.updateManager(downloadList);
-    frame.pack();
+  public void addDownload(int qq) {
+       dm.addDownload(yp.urls[qq],saveFileField.getSelectedFiles().get(0).getAbsolutePath(),yp.title);
+       panelMissions.add(new DownloadMission(dm.lastAdds));
+       
+      
   }
+//  public void addDownload(Download download) {
+//    download.addObserver(this);
+//    panelMissions.add(new DownloadMission(download));
+//    frame.pack();
+//  }
    
   public void createFrames(){
       
@@ -168,21 +185,25 @@ public class Multithread_downloader implements Observer, Constants {
                 WebLookAndFeel.install();
                 WebLookAndFeel.initializeManagers();
                 new Multithread_downloader();
+                Log.debugSet=true;
             }
         });
     }
 
     public void update(Observable o, Object arg) {
+        System.out.println("loloqop");
+        if(choice.down>-1){
+            addDownload(choice.down);
+        }
+        
         totalSpeed=0;
-        qm.updateManager(downloadList);
-        for (Download downloadList1 : downloadList) {
-            if (downloadList1.getStatus() == 0) {
-                totalSpeed = totalSpeed + downloadList1.getSpeed();
+        for (Download download : dm.downloadList) {
+            if (download.getStatus() == 0) {
+                totalSpeed = totalSpeed + download.getSpeed();
             }
         }
-        totalSpeedL.setText("Total speed:"+downloadList.get(0).formatFileSize(totalSpeed)+"/s");
-        statusLabel.setText("Current downloads: "+qm.getCurrentDownloads());
-       
+        totalSpeedL.setText("Total speed:"+dm.formatFileSize(totalSpeed)+"/s");
+//       
         frame.pack();
     }
 
